@@ -6,6 +6,10 @@ var cols = 20;
 var board;
 var context;
 
+//snake hoofd
+var snakeX = blockSize * 5;
+var snakeY = blockSize * 5;
+
 
 window.onload = function() {
     board = document.getElementById("board");
@@ -19,4 +23,9 @@ window.onload = function() {
 function update() {
     context.fillStyle="black";
     context.fillRect(0, 0, board.width, board.height);
+
+    context.fillStyle = "lime";
+    context.fillRect(snakeX, snakeY, blockSize, blockSize);
+
+    
 }
