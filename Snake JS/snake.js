@@ -39,6 +39,19 @@ var foodImages = ['foodPeach.png', 'foodBanana.png', 'foodApple.png', 'foodCherr
 
 // Variabele om bij te houden welke afbeelding actief is
 var activeFoodImage;
+// Afbeelding voor het hoofd van de slang
+var snakeHeadImage = new Image();
+snakeHeadImage.src = "snakeHead.png";
+// Array met afbeeldingen voor de staart van de slang
+var snakeTailImages = [
+  new Image(), // Afbeelding voor het eerste staartsegment
+  new Image(), // Afbeelding voor het tweede staartsegment
+  // Voeg hier meer afbeeldingen toe voor extra staartsegmenten indien nodig
+];
+// Laad de afbeeldingen voor de staart van de slang
+for (let i = 0; i < snakeTailImages.length; i++) {
+  snakeTailImages[i].src = "snakeTail.png";
+}
 
 function update() {
   if (gameOver) {
@@ -82,10 +95,60 @@ function update() {
       return;
     }
 
-    context.fillRect(snakeX, snakeY, blockSize, blockSize);
+    // Bepaal de rotatiehoek van het hoofd op basis van de bewegingsrichting
+    var rotationAngle = 0;
+    if (velocityX === -1) {
+      rotationAngle = 90; // Links
+    } else if (velocityX === 1) {
+      rotationAngle = -90; // Rechts
+    } else if (velocityY === -1) {
+      rotationAngle = 180; // Boven
+    } else if (velocityY === 1) {
+      rotationAngle = 0; // Onder
+    }
+
+    // Teken het hoofd van de slang als een afbeelding met rotatie
+    context.save();
+    context.translate(snakeX + blockSize / 2, snakeY + blockSize / 2);
+    context.rotate((rotationAngle * Math.PI) / 180);
+    context.drawImage(snakeHeadImage, -blockSize / 2, -blockSize / 2, blockSize, blockSize);
+    context.restore();
+
+    // Teken de staart van de slang
     for (let i = 0; i < snakeBody.length; i++) {
-      context.fillRect(snakeBody[i][0], snakeBody[i][1], blockSize, blockSize);
-    } // Teken nieuwe snake body bij elke appel gegeten
+      var tailSegmentX = snakeBody[i][0];
+      var tailSegmentY = snakeBody[i][1];
+      var tailImageIndex = i % snakeTailImages.length; // Wissel tussen de beschikbare staartafbeeldingen
+
+      // Bepaal de rotatiehoek van het staartsegment op basis van de bewegingsrichting
+      var tailRotation = rotationAngle;
+
+      // Pas de rotatiehoek aan voor de staartsegmenten die zich na het hoofd bevinden
+      if (i > 0) {
+        var previousSegmentX = snakeBody[i - 1][0];
+        var previousSegmentY = snakeBody[i - 1][1];
+
+        var dx = tailSegmentX - previousSegmentX;
+        var dy = tailSegmentY - previousSegmentY;
+
+        if (dx === -blockSize) {
+          tailRotation = -90; // Links
+        } else if (dx === blockSize) {
+          tailRotation = 90; // Rechts
+        } else if (dy === -blockSize) {
+          tailRotation = 0; // Boven
+        } else if (dy === blockSize) {
+          tailRotation = 180; // Onder
+        }
+      }
+
+      // Teken het staartsegment als een afbeelding met rotatie
+      context.save();
+      context.translate(tailSegmentX + blockSize / 2, tailSegmentY + blockSize / 2);
+      context.rotate((tailRotation * Math.PI) / 180);
+      context.drawImage(snakeTailImages[tailImageIndex], -blockSize / 2, -blockSize / 2, blockSize, blockSize);
+      context.restore();
+    }
 
     // "Game over" voorwaarden
     for (let i = 0; i < snakeBody.length; i++) {
