@@ -35,82 +35,96 @@ window.onload = function() {
     setInterval(update, 1000/10); //update elke 100 ms
 }
 
+var foodImages = ['foodPeach.png', 'foodBanana.png', 'foodApple.png', 'foodCherries.png'];
+
+// Variabele om bij te houden welke afbeelding actief is
+var activeFoodImage;
+
 function update() {
-    if (gameOver) {
+  if (gameOver) {
+    return;
+  }
+
+  // Nieuwe achtergrondafbeelding
+  var backgroundImage = new Image();
+  backgroundImage.src = "backgroundGrass.jpg";
+
+  // Wacht tot de afbeelding is geladen
+  backgroundImage.onload = function () {
+    // Functie om de achtergrond te tekenen
+    function drawBackground() {
+      // Teken de nieuwe achtergrondafbeelding
+      context.drawImage(backgroundImage, 0, 0, board.width, board.height);
+
+      // Teken de borders
+      context.strokeStyle = "black";
+      context.lineWidth = 2;
+      context.strokeRect(0, 0, board.width, board.height);
+    }
+
+    // Roep de functie aan om de achtergrond te tekenen
+    drawBackground();
+
+    // Roep de functie aan om de speler en het voedsel te tekenen
+    drawPlayerAndFood();
+  };
+
+  // Functie om de speler en het voedsel te tekenen
+  function drawPlayerAndFood() {
+    context.fillStyle = "black";
+    snakeX += velocityX * blockSize;
+    snakeY += velocityY * blockSize;
+
+    // Controleer of de slang de randen van het bord raakt
+    if (snakeX < 0 || snakeX >= board.width || snakeY < 0 || snakeY >= board.height) {
+      gameOver = true;
+      alert("Game Over");
       return;
     }
-  
-    // Nieuwe achtergrondafbeelding
-    var backgroundImage = new Image();
-    backgroundImage.src = "Grass.jpg";
-  
-    // Wacht tot de afbeelding is geladen
-    backgroundImage.onload = function () {
-      // Functie om de achtergrond te tekenen
-      function drawBackground() {
-        // Teken de nieuwe achtergrondafbeelding
-        context.drawImage(backgroundImage, 0, 0, board.width, board.height);
-  
-        // Teken de borders
-        context.strokeStyle = "black";
-        context.lineWidth = 2;
-        context.strokeRect(0, 0, board.width, board.height);
-      }
-  
-      // Roep de functie aan om de achtergrond te tekenen
-      drawBackground();
-  
-      // Roep de functie aan om de speler en het voedsel te tekenen
-      drawPlayerAndFood();
-    };
-  
-    // Functie om de speler en het voedsel te tekenen
-    function drawPlayerAndFood() {
-      context.fillStyle = "black";
-      snakeX += velocityX * blockSize;
-      snakeY += velocityY * blockSize;
-  
-      // Controleer of de slang de randen van het bord raakt
-      if (snakeX < 0 || snakeX >= board.width || snakeY < 0 || snakeY >= board.height) {
+
+    context.fillRect(snakeX, snakeY, blockSize, blockSize);
+    for (let i = 0; i < snakeBody.length; i++) {
+      context.fillRect(snakeBody[i][0], snakeBody[i][1], blockSize, blockSize);
+    } // Teken nieuwe snake body bij elke appel gegeten
+
+    // "Game over" voorwaarden
+    for (let i = 0; i < snakeBody.length; i++) {
+      if (snakeX === snakeBody[i][0] && snakeY === snakeBody[i][1]) {
         gameOver = true;
         alert("Game Over");
         return;
       }
-  
-      context.fillRect(snakeX, snakeY, blockSize, blockSize);
-      for (let i = 0; i < snakeBody.length; i++) {
-        context.fillRect(snakeBody[i][0], snakeBody[i][1], blockSize, blockSize);
-      } // Teken nieuwe snake body bij elke appel gegeten
-  
-      // "Game over" voorwaarden
-      for (let i = 0; i < snakeBody.length; i++) {
-        if (snakeX === snakeBody[i][0] && snakeY === snakeBody[i][1]) {
-          gameOver = true;
-          alert("Game Over");
-          return;
-        }
-      }
-  
-      // Maak een nieuw Image-object voor het voedsel
-      var foodImage = new Image();
-      foodImage.src = "foodPeach.png";
-  
-      // Teken het voedsel als een afbeelding
-      context.drawImage(foodImage, foodX, foodY, blockSize, blockSize);
-  
-      if (snakeX === foodX && snakeY === foodY) {
-        snakeBody.push([foodX, foodY]);
-        placeFood();
-      }
-      for (let i = snakeBody.length - 1; i > 0; i--) {
-        snakeBody[i] = snakeBody[i - 1];
-      }
-      if (snakeBody.length) {
-        snakeBody[0] = [snakeX, snakeY];
-      }
+    }
+
+    // Kies een willekeurige afbeelding voor het voedsel als deze nog niet is ingesteld
+    if (!activeFoodImage) {
+      activeFoodImage = foodImages[Math.floor(Math.random() * foodImages.length)];
+    }
+
+    // Maak een nieuw Image-object voor het voedsel
+    var foodImage = new Image();
+    foodImage.src = activeFoodImage;
+
+    // Teken het voedsel als een afbeelding
+    context.drawImage(foodImage, foodX, foodY, blockSize, blockSize);
+
+    if (snakeX === foodX && snakeY === foodY) {
+      snakeBody.push([foodX, foodY]);
+      placeFood();
+
+      // Kies een nieuwe willekeurige afbeelding voor het voedsel
+      activeFoodImage = foodImages[Math.floor(Math.random() * foodImages.length)];
+    }
+
+    for (let i = snakeBody.length - 1; i > 0; i--) {
+      snakeBody[i] = snakeBody[i - 1];
+    }
+    if (snakeBody.length) {
+      snakeBody[0] = [snakeX, snakeY];
     }
   }
-  
+}
+
 function placeFood() {
     foodX = Math.floor(Math.random() * cols) * blockSize;
     foodY = Math.floor(Math.random() * rows) * blockSize;
