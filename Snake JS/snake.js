@@ -40,42 +40,69 @@ function update() {
         return;
     }
 
-    context.fillStyle="black";
-    context.fillRect(0, 0, board.width, board.height);
+    // Nieuwe achtergrondafbeelding
+    var backgroundImage = new Image();
+    backgroundImage.src = "Grass.jpg";
 
-    context.fillStyle="lime";
-    snakeX += velocityX * blockSize;
-    snakeY += velocityY * blockSize;
-    context.fillRect(snakeX, snakeY, blockSize, blockSize);
-    for (let i = 0; i < snakeBody.length; i++){
-        context.fillRect(snakeBody[i][0], snakeBody[i][1], blockSize, blockSize);
-    }  //draws nieuwe snake body bij elke appel gegeten
+    // Wacht tot de afbeelding is geladen
+    backgroundImage.onload = function() {
+        // Functie om de achtergrond te tekenen
+        function drawBackground() {
+            // Teken de nieuwe achtergrondafbeelding
+            context.drawImage(backgroundImage, 0, 0, board.width, board.height);
 
-    //"game over" voorwaarden
-    if (snakeX < 0 || snakeX > cols*blockSize || snakeY < 0 || snakeY > rows*blockSize) {
-        gameOver = true;
-        alert("Game Over");
-    }
-    for (let i = 0; i < snakeBody.length; i++){
-        if (snakeX == snakeBody[i][0] && snakeY == snakeBody[i][1]) {
-            gameOver = true;
-            alert("Game Over");
+            // Teken de borders
+            context.strokeStyle = "black";
+            context.lineWidth = 2;
+            context.strokeRect(0, 0, board.width, board.height);
         }
-    }
 
-    context.fillStyle="red";
-    context.fillRect(foodX, foodY, blockSize, blockSize);
+        // Functie om de speler en het voedsel te tekenen
+        function drawPlayerAndFood() {
+            context.fillStyle = 'black';
+            snakeX += velocityX * blockSize;
+            snakeY += velocityY * blockSize;
+        
+            // Controleer of de slang de randen van het bord raakt
+            if (snakeX < 0 || snakeX >= board.width || snakeY < 0 || snakeY >= board.height) {
+                gameOver = true;
+                alert("Game Over");
+                return;
+            }
+        
+            context.fillRect(snakeX, snakeY, blockSize, blockSize);
+            for (let i = 0; i < snakeBody.length; i++) {
+                context.fillRect(snakeBody[i][0], snakeBody[i][1], blockSize, blockSize);
+            } // Teken nieuwe snake body bij elke appel gegeten
+        
+            // "Game over" voorwaarden
+            for (let i = 0; i < snakeBody.length; i++) {
+                if (snakeX === snakeBody[i][0] && snakeY === snakeBody[i][1]) {
+                    gameOver = true;
+                    alert("Game Over");
+                    return;
+                }
+            }
+        
+            context.fillStyle = "red";
+            context.fillRect(foodX, foodY, blockSize, blockSize);
+        
+            if (snakeX === foodX && snakeY === foodY) {
+                snakeBody.push([foodX, foodY]);
+                placeFood();
+            }
+            for (let i = snakeBody.length - 1; i > 0; i--) {
+                snakeBody[i] = snakeBody[i - 1];
+            } // Laat snake bodyparts weten waar zij zich moeten positioneren om achter snake te blijven
+            if (snakeBody.length) {
+                snakeBody[0] = [snakeX, snakeY];
+            }
+        }
 
-    if (snakeX == foodX && snakeY == foodY) {
-        snakeBody.push([foodX, foodY]);
-        placeFood();
-    }
-    for (let i = snakeBody.length-1; i > 0; i--){
-        snakeBody[i] = snakeBody[i-1];
-    } //laat snake bodyparts weten waar zij zich moeten positioneren om achter snake te blijven
-    if (snakeBody.length) {
-        snakeBody[0] = [snakeX, snakeY]; 
-    }
+        // Roep de functies aan om de achtergrond, speler en voedsel te tekenen
+        drawBackground();
+        drawPlayerAndFood();
+    };
 }
 
 function placeFood() {
