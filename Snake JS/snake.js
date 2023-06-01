@@ -39,22 +39,62 @@ window.onload = function() {
     setInterval(update, 1000/10); //update elke 100 ms
 }
 
+var foodImages = ['foodPeach.png', 'foodBanana.png', 'foodApple.png', 'foodCherries.png'];
+
+// Variabele om bij te houden welke afbeelding actief is
+var activeFoodImage;
+// Afbeelding voor het hoofd van de slang
+var snakeHeadImage = new Image();
+snakeHeadImage.src = "snakeHead.png";
+// Array met afbeeldingen voor de staart van de slang
+var snakeTailImages = [
+  new Image(), // Afbeelding voor het eerste staartsegment
+  new Image(), // Afbeelding voor het tweede staartsegment
+  // Voeg hier meer afbeeldingen toe voor extra staartsegmenten indien nodig
+];
+// Laad de afbeeldingen voor de staart van de slang
+for (let i = 0; i < snakeTailImages.length; i++) {
+  snakeTailImages[i].src = "snakeTail.png";
+}
+
 function update() {
-    if (gameOver) {
-        return;
+  if (gameOver) {
+    return;
+  }
+
+  // Nieuwe achtergrondafbeelding
+  var backgroundImage = new Image();
+  backgroundImage.src = "backgroundGrass.jpg";
+
+  // Wacht tot de afbeelding is geladen
+  backgroundImage.onload = function () {
+    // Functie om de achtergrond te tekenen
+    function drawBackground() {
+      // Teken de nieuwe achtergrondafbeelding
+      context.drawImage(backgroundImage, 0, 0, board.width, board.height);
+
+      // Teken de borders
+      context.strokeStyle = "black";
+      context.lineWidth = 2;
+      context.strokeRect(0, 0, board.width, board.height);
     }
 
-    context.fillStyle="black";
-    context.fillRect(0, 0, board.width, board.height);
+    // Roep de functie aan om de achtergrond te tekenen
+    drawBackground();
 
-    context.fillStyle="lime";
+    // Roep de functie aan om de speler en het voedsel te tekenen
+    drawPlayerAndFood();
+  };
+
+  // Functie om de speler en het voedsel te tekenen
+  function drawPlayerAndFood() {
+    context.fillStyle = "black";
     snakeX += velocityX * blockSize;
     snakeY += velocityY * blockSize;
     context.fillRect(snakeX, snakeY, blockSize, blockSize);
-    
     for (let i = 0; i < snakeBody.length; i++){
         context.fillRect(snakeBody[i][0], snakeBody[i][1], blockSize, blockSize);
-    }  //nieuwe snake body bij elke appel gegeten
+    }  //draws nieuwe snake body bij elke appel gegeten
 
     //"game over" voorwaarden
     if (snakeX < 0 || snakeX > cols*blockSize || snakeY < 0 || snakeY > rows*blockSize) {
@@ -66,17 +106,30 @@ function update() {
         }
     }
 
-    context.fillStyle="red";
-    context.fillRect(foodX, foodY, blockSize, blockSize);
-
-    if (snakeX == foodX && snakeY == foodY) {
-        snakeBody.push([foodX, foodY]);
-        placeFood();
-        keepScore();
+    // Kies een willekeurige afbeelding voor het voedsel als deze nog niet is ingesteld
+    if (!activeFoodImage) {
+      activeFoodImage = foodImages[Math.floor(Math.random() * foodImages.length)];
     }
-    for (let i = snakeBody.length-1; i > 0; i--){
-        snakeBody[i] = snakeBody[i-1];
-    } //laat snake bodyparts weten waar zij zich moeten positioneren om achter snake te blijven
+
+    // Maak een nieuw Image-object voor het voedsel
+    var foodImage = new Image();
+    foodImage.src = activeFoodImage;
+
+    // Teken het voedsel als een afbeelding
+    context.drawImage(foodImage, foodX, foodY, blockSize, blockSize);
+
+    if (snakeX === foodX && snakeY === foodY) {
+      snakeBody.push([foodX, foodY]);
+      placeFood();
+        keepScore();
+
+      // Kies een nieuwe willekeurige afbeelding voor het voedsel
+      activeFoodImage = foodImages[Math.floor(Math.random() * foodImages.length)];
+    }
+
+    for (let i = snakeBody.length - 1; i > 0; i--) {
+      snakeBody[i] = snakeBody[i - 1];
+    }
     if (snakeBody.length) {
         snakeBody[0]= [snakeX, snakeY]; 
     }
@@ -85,6 +138,7 @@ function update() {
         document.getElementById("gameOverMessage").textContent= "Game Over !"
         return;
     }
+  }
 }
 
 function placeFood() {
